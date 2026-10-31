@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Customer')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav('customers')}"></nav>
+<main>
+    <h1 th:text="${customer.id == null} ? 'Add Customer' : 'Edit Customer'">Customer</h1>
+    <div class="card" style="max-width:640px">
+        <form method="post" th:action="@{/customers}" th:object="${customer}">
+            <input type="hidden" th:field="*{id}">
+            <div class="field">
+                <label for="name">Name *</label>
+                <input id="name" type="text" th:field="*{name}">
+                <div class="error-text" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+            </div>
+            <div class="row">
+                <div class="field"><label for="phone">Phone</label><input id="phone" type="text" th:field="*{phone}"></div>
+                <div class="field"><label for="email">Email</label><input id="email" type="email" th:field="*{email}"></div>
+            </div>
+            <div class="field"><label for="address">Address</label><textarea id="address" rows="2" th:field="*{address}"></textarea></div>
+            <div class="row">
+                <div class="field">
+                    <label for="state">State (decides CGST+SGST vs IGST)</label>
+                    <select id="state" th:field="*{state}">
+                        <option value="">-- Select --</option>
+                        <option th:each="s : ${T(com.billing.util.IndianStates).LIST}" th:value="${s}" th:text="${s}"></option>
+                    </select>
+                </div>
+                <div class="field"><label for="gstin">GSTIN (optional)</label><input id="gstin" type="text" th:field="*{gstin}"></div>
+            </div>
+            <button class="btn" type="submit">Save</button>
+            <a class="btn secondary" th:href="@{/customers}">Cancel</a>
+        </form>
+    </div>
+</main>
+</body>
+</html>

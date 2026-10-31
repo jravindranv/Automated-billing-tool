@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Reports')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav('reports')}"></nav>
+<main>
+    <h1>Reports</h1>
+    <div class="tabs no-print">
+        <a th:href="@{/reports/daily}" th:classappend="${type == 'daily'} ? 'active'">Daily Sales</a>
+        <a th:href="@{/reports/monthly}" th:classappend="${type == 'monthly'} ? 'active'">Monthly Sales</a>
+        <a th:href="@{/reports/products}" th:classappend="${type == 'products'} ? 'active'">Product Report</a>
+    </div>
+
+    <!-- ===== DAILY ===== -->
+    <th:block th:if="${type == 'daily'}">
+        <div class="card">
+            <form class="inline-form" method="get" th:action="@{/reports/daily}">
+                <label for="date" style="margin:0">Date</label>
+                <input id="date" type="date" name="date" th:value="${date}">
+                <button class="btn secondary" type="submit">Show</button>
+            </form>
+        </div>
+        <div th:replace="~{reports/summary :: summaryBlock}"></div>
+        <div class="card">
+            <h2>Invoices on <span th:text="${#temporals.format(date, 'dd-MMM-yyyy')}"></span></h2>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Invoice</th><th>Time</th><th>Customer</th><th class="num">Taxable</th><th class="num">Tax</th><th class="num">Total</th></tr></thead>
+                    <tbody>
+                    <tr th:each="i : ${invoices}">
+                        <td><a th:href="@{/invoices/{id}(id=${i.id})}" th:text="${i.invoiceNumber}"></a></td>
+                        <td th:text="${#temporals.format(i.invoiceDate, 'HH:mm')}"></td>
+                        <td th:text="${i.customerName}"></td>
+                        <td class="num" th:text="${#numbers.formatDecimal(i.subtotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                        <td class="num" th:text="${#numbers.formatDecimal(i.totalTax, 1, 'COMMA', 2, 'POINT')}"></td>
+                        <td class="num" th:text="${#numbers.formatDecimal(i.grandTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(invoices)}"><td colspan="6" class="muted">No sales on this day.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </th:block>
+
+    <!-- ===== MONTHLY ===== -->
+    <th:block th:if="${type == 'monthly'}">
+        <div class="card">
+            <form class="inline-form" method="get" th:action="@{/reports/monthly}">
+                <label for="month" style="margin:0">Month</label>
+                <input id="month" type="month" name="month" th:value="${month}">
+                <button class="btn secondary" type="submit">Show</button>
+            </form>
+        </div>
+        <div th:replace="~{reports/summary :: summaryBlock}"></div>
+        <div class="card">
+            <h2>Day-wise sales</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Date</th><th class="num">Invoices</th><th class="num">Taxable</th><th class="num">Tax</th><th class="num">Total</th></tr></thead>
+                    <tbody>
+                    <tr th:each="r : ${rows}">
+                        <td><a th:href="@{/reports/daily(date=${r.date})}" th:text="${#temporals.format(r.date, 'dd-MMM-yyyy')}"></a></td>
+                        <td class="num" th:text="${r.invoiceCount}"></td>
+                        <td class="num" th:text="${#numbers.formatDecimal(r.taxable, 1, 'COMMA', 2, 'POINT')}"></td>
+                        <td class="num" th:text="${#numbers.formatDecimal(r.tax, 1, 'COMMA', 2, 'POINT')}"></td>
+                        <td class="num" th:text="${#numbers.formatDecimal(r.total, 1, 'COMMA', 2, 'POINT')}"></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(rows)}"><td colspan="5" class="muted">No sales in this month.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </th:block>
+
+    <!-- ===== PRODUCTS ===== -->
+    <th:block th:if="${type == 'products'}">
+        <div class="card">
+            <form class="inline-form" method="get" th:action="@{/reports/products}">
+                <label for="from" style="margin:0">From</label>
+                <input id="from" type="date" name="from" th:value="${from}">
+                <label for="to" style="margin:0">To</label>
+                <input id="to" type="date" name="to" th:value="${to}">
+                <button class="btn secondary" type="submit">Show</button>
+            </form>
+        </div>
+        <div class="card">
+            <h2>Product-wise sales</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Product</th><th class="num">Units sold</th><th class="num">Revenue (incl. GST)</th></tr></thead>
+                    <tbody>
+                    <tr th:each="r : ${productRows}">
+                        <td th:text="${r.productName}"></td>
+                        <td class="num" th:text="${r.quantity}"></td>
+                        <td class="num" th:text="${#numbers.formatDecimal(r.revenue, 1, 'COMMA', 2, 'POINT')}"></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(productRows)}"><td colspan="3" class="muted">No sales in this period.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </th:block>
+</main>
+
+</body>
+</html>

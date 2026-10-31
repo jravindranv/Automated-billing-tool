@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' | ' + ${@shopProperties.name}">Billing</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<nav th:fragment="nav(active)" class="topbar no-print">
+    <span class="brand" th:text="${@shopProperties.name}">Shop</span>
+    <a class="nav" th:classappend="${active == 'home'} ? 'active'" th:href="@{/}">Dashboard</a>
+    <a class="nav" th:classappend="${active == 'billing'} ? 'active'" th:href="@{/billing/new}">New Bill</a>
+    <a class="nav" th:classappend="${active == 'invoices'} ? 'active'" th:href="@{/invoices}">Sales History</a>
+    <a class="nav" th:classappend="${active == 'products'} ? 'active'" th:href="@{/products}">Products</a>
+    <a class="nav" th:classappend="${active == 'customers'} ? 'active'" th:href="@{/customers}">Customers</a>
+    <a class="nav" th:classappend="${active == 'reports'} ? 'active'" th:href="@{/reports/daily}">Reports</a>
+</nav>
+<div th:fragment="flash" class="no-print">
+    <div class="flash ok" th:if="${message}" th:text="${message}"></div>
+    <div class="flash err" th:if="${error}" th:text="${error}"></div>
+</div>
+</body>
+</html>

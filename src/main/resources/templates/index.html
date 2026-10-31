@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Dashboard')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav('home')}"></nav>
+<main>
+    <div class="page-head">
+        <h1>Dashboard</h1>
+        <a class="btn" th:href="@{/billing/new}">+ New Bill</a>
+    </div>
+    <div th:replace="~{fragments :: flash}"></div>
+
+    <div class="row" style="margin-bottom:18px">
+        <div class="stat">
+            <div class="label">Today's sales</div>
+            <div class="value" th:text="'₹' + ${#numbers.formatDecimal(today.total, 1, 'COMMA', 2, 'POINT')}">0</div>
+            <div class="sub" th:text="${today.invoiceCount} + ' invoice(s)'"></div>
+        </div>
+        <div class="stat">
+            <div class="label">This month</div>
+            <div class="value" th:text="'₹' + ${#numbers.formatDecimal(month.total, 1, 'COMMA', 2, 'POINT')}">0</div>
+            <div class="sub" th:text="${month.invoiceCount} + ' invoice(s)'"></div>
+        </div>
+        <div class="stat">
+            <div class="label">Products</div>
+            <div class="value" th:text="${productCount}">0</div>
+            <div class="sub"><a th:href="@{/products}">Manage</a></div>
+        </div>
+        <div class="stat">
+            <div class="label">Customers</div>
+            <div class="value" th:text="${customerCount}">0</div>
+            <div class="sub"><a th:href="@{/customers}">Manage</a></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="card">
+            <h2>Recent invoices</h2>
+            <p class="muted" th:if="${#lists.isEmpty(recent)}">No invoices yet.</p>
+            <div class="table-wrap" th:unless="${#lists.isEmpty(recent)}">
+                <table>
+                    <thead><tr><th>Invoice</th><th>Customer</th><th class="num">Total</th><th>Status</th></tr></thead>
+                    <tbody>
+                    <tr th:each="i : ${recent}">
+                        <td><a th:href="@{/invoices/{id}(id=${i.id})}" th:text="${i.invoiceNumber}"></a></td>
+                        <td th:text="${i.customerName}"></td>
+                        <td class="num" th:text="${#numbers.formatDecimal(i.grandTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                        <td><span class="badge" th:classappend="${i.paymentStatus}" th:text="${i.paymentStatus}"></span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card">
+            <h2>Low stock</h2>
+            <p class="muted" th:if="${#lists.isEmpty(lowStock)}">All products are sufficiently stocked.</p>
+            <div class="table-wrap" th:unless="${#lists.isEmpty(lowStock)}">
+                <table>
+                    <thead><tr><th>Product</th><th class="num">Stock</th></tr></thead>
+                    <tbody>
+                    <tr th:each="p : ${lowStock}">
+                        <td><a th:href="@{/products/{id}/edit(id=${p.id})}" th:text="${p.name}"></a></td>
+                        <td class="num low" th:text="${p.stock} + ' ' + ${p.unit}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

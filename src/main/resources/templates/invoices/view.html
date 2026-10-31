@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${invoice.invoiceNumber})}"></head>
+<body>
+<nav th:replace="~{fragments :: nav('invoices')}"></nav>
+<main>
+    <div class="page-head no-print">
+        <h1>Invoice</h1>
+        <div>
+            <button class="btn" onclick="window.print()">Print / Save as PDF</button>
+            <a class="btn secondary" th:href="@{/billing/new}">New Bill</a>
+            <a class="btn secondary" th:href="@{/invoices}">All Invoices</a>
+        </div>
+    </div>
+    <div th:replace="~{fragments :: flash}"></div>
+
+    <div class="invoice">
+        <div class="invoice-head">
+            <div>
+                <h2 th:text="${@shopProperties.name}"></h2>
+                <div th:text="${@shopProperties.address}"></div>
+                <div th:if="${@shopProperties.phone != ''}" th:text="'Phone: ' + ${@shopProperties.phone}"></div>
+                <div th:if="${@shopProperties.gstin != ''}"><b>GSTIN:</b> <span th:text="${@shopProperties.gstin}"></span></div>
+            </div>
+            <div class="meta">
+                <div class="title">TAX INVOICE</div>
+                <div><b th:text="${invoice.invoiceNumber}"></b></div>
+                <div th:text="${#temporals.format(invoice.invoiceDate, 'dd-MMM-yyyy HH:mm')}"></div>
+                <div><span class="badge" th:classappend="${invoice.paymentStatus}" th:text="${invoice.paymentStatus}"></span></div>
+            </div>
+        </div>
+
+        <div class="parties">
+            <div>
+                <div class="muted">Bill to</div>
+                <div><b th:text="${invoice.customerName}"></b></div>
+                <div th:if="${!#strings.isEmpty(invoice.customerAddress)}" th:text="${invoice.customerAddress}"></div>
+                <div th:if="${!#strings.isEmpty(invoice.customerPhone)}" th:text="'Phone: ' + ${invoice.customerPhone}"></div>
+                <div th:if="${!#strings.isEmpty(invoice.customerGstin)}">GSTIN: <span th:text="${invoice.customerGstin}"></span></div>
+            </div>
+            <div>
+                <div class="muted">Place of supply</div>
+                <div th:text="${invoice.customerState != null and invoice.customerState != ''} ? ${invoice.customerState} : ${@shopProperties.state}"></div>
+                <div class="muted" th:text="${invoice.interState} ? 'Inter-state supply (IGST)' : 'Intra-state supply (CGST + SGST)'"></div>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr><th>#</th><th>Description</th><th>HSN</th><th class="num">Qty</th><th class="num">Rate</th>
+                    <th class="num">Taxable</th><th class="num">GST %</th><th class="num">GST Amt</th><th class="num">Total</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="it, st : ${invoice.items}">
+                    <td th:text="${st.count}"></td>
+                    <td th:text="${it.productName}"></td>
+                    <td th:text="${it.hsnCode}"></td>
+                    <td class="num" th:text="${it.quantity} + ' ' + ${it.unit}"></td>
+                    <td class="num" th:text="${#numbers.formatDecimal(it.unitPrice, 1, 'COMMA', 2, 'POINT')}"></td>
+                    <td class="num" th:text="${#numbers.formatDecimal(it.taxableValue, 1, 'COMMA', 2, 'POINT')}"></td>
+                    <td class="num" th:text="${it.gstRate}"></td>
+                    <td class="num" th:text="${#numbers.formatDecimal(it.taxAmount, 1, 'COMMA', 2, 'POINT')}"></td>
+                    <td class="num" th:text="${#numbers.formatDecimal(it.lineTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="totals" style="margin-top:16px">
+            <div><span>Subtotal (taxable)</span><span th:text="'₹' + ${#numbers.formatDecimal(invoice.subtotal, 1, 'COMMA', 2, 'POINT')}"></span></div>
+            <div th:unless="${invoice.interState}"><span>CGST</span><span th:text="'₹' + ${#numbers.formatDecimal(invoice.cgst, 1, 'COMMA', 2, 'POINT')}"></span></div>
+            <div th:unless="${invoice.interState}"><span>SGST</span><span th:text="'₹' + ${#numbers.formatDecimal(invoice.sgst, 1, 'COMMA', 2, 'POINT')}"></span></div>
+            <div th:if="${invoice.interState}"><span>IGST</span><span th:text="'₹' + ${#numbers.formatDecimal(invoice.igst, 1, 'COMMA', 2, 'POINT')}"></span></div>
+            <div><span>Round off</span><span th:text="${#numbers.formatDecimal(invoice.roundOff, 1, 'COMMA', 2, 'POINT')}"></span></div>
+            <div class="grand"><span>Grand total</span><span th:text="'₹' + ${#numbers.formatDecimal(invoice.grandTotal, 1, 'COMMA', 2, 'POINT')}"></span></div>
+            <div><span>Paid</span><span th:text="'₹' + ${#numbers.formatDecimal(invoice.amountPaid, 1, 'COMMA', 2, 'POINT')}"></span></div>
+            <div><span><b>Balance due</b></span><b th:text="'₹' + ${#numbers.formatDecimal(invoice.balance, 1, 'COMMA', 2, 'POINT')}"></b></div>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(invoice.payments)}" style="margin-top:16px">
+            <div class="muted">Payments received</div>
+            <table>
+                <tbody>
+                <tr th:each="p : ${invoice.payments}">
+                    <td th:text="${#temporals.format(p.paidAt, 'dd-MMM-yyyy HH:mm')}"></td>
+                    <td th:text="${p.mode}"></td>
+                    <td th:text="${p.reference}"></td>
+                    <td class="num" th:text="${#numbers.formatDecimal(p.amount, 1, 'COMMA', 2, 'POINT')}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p class="muted" style="margin-top:28px;text-align:center">Thank you for your business!</p>
+    </div>
+
+    <div class="card no-print" style="margin-top:18px" th:if="${invoice.balance.signum() > 0}">
+        <h2>Record a payment</h2>
+        <form class="inline-form" method="post" th:action="@{/invoices/{id}/payments(id=${invoice.id})}">
+            <select name="mode"><option th:each="m : ${modes}" th:value="${m}" th:text="${m}"></option></select>
+            <input type="number" name="amount" step="0.01" min="0.01" th:max="${invoice.balance}" th:value="${invoice.balance}" required>
+            <input type="text" name="reference" placeholder="Reference (optional)">
+            <button class="btn" type="submit">Add Payment</button>
+        </form>
+    </div>
+</main>
+</body>
+</html>

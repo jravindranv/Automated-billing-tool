@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="summaryBlock" th:if="${summary != null}">
+    <div class="row" style="margin-bottom:18px">
+        <div class="stat"><div class="label">Invoices</div><div class="value" th:text="${summary.invoiceCount}">0</div></div>
+        <div class="stat"><div class="label">Taxable value</div><div class="value" th:text="'₹' + ${#numbers.formatDecimal(summary.taxable, 1, 'COMMA', 2, 'POINT')}">0</div></div>
+        <div class="stat"><div class="label">GST collected</div><div class="value" th:text="'₹' + ${#numbers.formatDecimal(summary.tax, 1, 'COMMA', 2, 'POINT')}">0</div></div>
+        <div class="stat"><div class="label">Total sales</div><div class="value" th:text="'₹' + ${#numbers.formatDecimal(summary.total, 1, 'COMMA', 2, 'POINT')}">0</div></div>
+    </div>
+    <div class="card" th:if="${!#lists.isEmpty(modeTotals)}">
+        <h2>Payments received by mode</h2>
+        <table>
+            <tbody>
+            <tr th:each="m : ${modeTotals}">
+                <td th:text="${m.mode}"></td>
+                <td class="num" th:text="'₹' + ${#numbers.formatDecimal(m.total, 1, 'COMMA', 2, 'POINT')}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

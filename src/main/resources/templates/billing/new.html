@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('New Bill')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav('billing')}"></nav>
+<main>
+    <h1>New Bill</h1>
+    <div th:replace="~{fragments :: flash}"></div>
+
+    <form id="billForm" method="post" th:action="@{/billing}" th:attr="data-shop-state=${@shopProperties.state}">
+        <div class="card">
+            <div class="row">
+                <div class="field">
+                    <label for="customerId">Customer</label>
+                    <select id="customerId" name="customerId">
+                        <option value="">Walk-in customer</option>
+                        <option th:each="c : ${customers}" th:value="${c.id}"
+                                th:text="${c.name} + (${c.phone} != null and ${c.phone} != '' ? ' - ' + ${c.phone} : '')"
+                                th:attr="data-state=${c.state}"></option>
+                    </select>
+                    <div class="muted" style="font-size:12px;margin-top:4px">
+                        Customer in another state than <b th:text="${@shopProperties.state}"></b> &rarr; IGST. Same state &rarr; CGST + SGST.
+                        <a th:href="@{/customers/new}">Add customer</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Items</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr><th style="width:40%">Product</th><th class="num">Rate</th><th style="width:110px">Qty</th><th class="num">GST</th><th class="num">Amount (incl. GST)</th><th></th></tr>
+                    </thead>
+                    <tbody id="lines"></tbody>
+                </table>
+            </div>
+            <p><button type="button" id="addRow" class="btn secondary small">+ Add item</button></p>
+
+            <div class="totals">
+                <div><span>Subtotal</span><span id="tSubtotal">0.00</span></div>
+                <div id="rowCgst"><span>CGST</span><span id="tCgst">0.00</span></div>
+                <div id="rowSgst"><span>SGST</span><span id="tSgst">0.00</span></div>
+                <div id="rowIgst" style="display:none"><span>IGST</span><span id="tIgst">0.00</span></div>
+                <div><span>Round off</span><span id="tRound">0.00</span></div>
+                <div class="grand"><span>Grand total</span><span id="tGrand">0.00</span></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Payment</h2>
+            <div class="row">
+                <div class="field">
+                    <label for="paymentMode">Mode</label>
+                    <select id="paymentMode" name="paymentMode">
+                        <option th:each="m : ${modes}" th:value="${m}" th:text="${m}"></option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="amountPaid">Amount received (0 = pay later)</label>
+                    <input id="amountPaid" name="amountPaid" type="number" step="0.01" min="0">
+                </div>
+                <div class="field">
+                    <label for="reference">Reference (UPI Txn ID / card last 4)</label>
+                    <input id="reference" name="reference" type="text">
+                </div>
+            </div>
+        </div>
+
+        <button class="btn" type="submit">Generate Invoice</button>
+    </form>
+
+    <!-- Row template cloned by billing.js -->
+    <template id="rowTemplate">
+        <tr>
+            <td>
+                <select name="productId" required>
+                    <option value="">-- Select product --</option>
+                    <option th:each="p : ${products}" th:value="${p.id}"
+                            th:text="${p.name} + ' (stock ' + ${p.stock} + ')'"
+                            th:attr="data-price=${p.price},data-gst=${p.gstRate},data-stock=${p.stock}"></option>
+                </select>
+            </td>
+            <td class="num rate">-</td>
+            <td><input type="number" name="quantity" min="1" value="1" required></td>
+            <td class="num gst">-</td>
+            <td class="num amt">-</td>
+            <td><button type="button" class="btn-remove" title="Remove">&times;</button></td>
+        </tr>
+    </template>
+</main>
+<script th:src="@{/js/billing.js}"></script>
+</body>
+</html>
